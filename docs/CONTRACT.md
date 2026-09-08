@@ -51,6 +51,27 @@ Defaults after `reset()`: `row` / `flex-start` / `stretch` / `nowrap`.
 
 ## 2. DOM contract — fixed IDs
 
+### Board direction — the page is RTL, the board is LTR
+
+`index.html` is `<html lang="he" dir="rtl">` because the interface is Hebrew.
+**`#board` deliberately overrides that with `dir="ltr"`.**
+
+This is not cosmetic. Direction defines the flex main axis: in an RTL container
+`flex-direction: row` runs right-to-left, so `justify-content: flex-end` moves
+items to the **left** edge. Measured in a browser, an RTL row with `flex-end`
+leaves a 1px gap on the left and 221px on the right — the mirror image of what
+every Flexbox tutorial, and our own level 1 ("צמודים לקצה הימני"), describes.
+
+With `dir="ltr"` on the board:
+
+- with `flex-direction: row`, `flex-start` is the **left** edge and `flex-end` is the **right** edge;
+- pod 1 sits leftmost, so `row-reverse` reads as a real reversal.
+
+The instructions are written in Hebrew but describe the **LTR** picture the
+student sees inside the bay, which is the same picture the assignment and the
+MDN docs describe. Do not remove `dir="ltr"` from `#board`.
+
+
 These IDs exist in `index.html` and **must not be renamed**.
 
 | id | element |

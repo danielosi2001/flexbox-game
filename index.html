@@ -22,8 +22,10 @@
     <p id="level-indicator"></p>
     <p id="instruction"></p>
 
-    <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים -->
-    <div id="board"></div>
+    <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים.
+         dir="ltr" בכוונה — כיוון הכתיבה קובע את הציר הראשי של Flexbox, וב-RTL
+         הערך flex-end היה מצמיד לשמאל. ראו docs/CONTRACT.md. -->
+    <div id="board" dir="ltr"></div>
 
     <!-- ui.js מזריק לכאן select לכל מאפיין ברשימת level.controls -->
     <div id="controls"></div>
