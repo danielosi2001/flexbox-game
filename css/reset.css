@@ -63,6 +63,10 @@ table {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    /* בלי איפוס ההשהיה, אנימציה עם fill-mode: both מחזיקה את האלמנט על
+       פריים הפתיחה למשך כל ההשהיה. עשרה תאים בהשהיה מדורגת היו נדלקים
+       אחד-אחד לאורך 405ms — בדיוק ההתנהגות שההעדפה מבקשת לבטל. */
+    animation-delay: -1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
