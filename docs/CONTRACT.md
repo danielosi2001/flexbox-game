@@ -146,6 +146,13 @@ inside one would break `align-items: stretch`.
 Pods have no fixed `width` or `height`, only `min-width` / `min-height`. That is
 what makes `stretch` visibly different from `flex-start` on both axes.
 
+**Build pods on level change only, never on a control change.** `.pod` carries a
+staggered dock-in animation that fires whenever the element enters the DOM, with
+no class and no call from JS. If `ui.js` re-creates the pods every time a select
+changes, that animation replays on every interaction and the board flickers
+constantly. Changing a control must only write to `#board.style` — which is what
+`applyValues()` already does.
+
 Each control renders as:
 
 ```html
@@ -183,8 +190,12 @@ animation for that class (or `prefers-reduced-motion` cuts it to 0.01ms and the
 element is off-screen), `animationend` may never fire and the class sticks on
 `#board` forever: the board stays flashed and the next `check()` cannot
 re-trigger it. CSS guarantees every one of these animations finishes inside
-600ms. The keyframe names are `bay-success` and `bay-error`; CSS never assumes
-the class stays.
+600ms. The keyframe names are `bay-success` (560ms) and `bay-error` (460ms),
+both defined in `css/style.css`; CSS never assumes the class stays.
+
+`reset.css` already zeroes animation durations under
+`prefers-reduced-motion: reduce`, and because teardown is a timer rather than an
+`animationend` listener, that path cannot strand a class either.
 
 ---
 
@@ -196,9 +207,20 @@ itself never changes size. So the puzzle solution is identical on desktop and
 mobile. This is an explicit assignment requirement — do not swap it for a fluid
 width, and do not move the transform onto `#board`.
 
-A scaled element still occupies its unscaled layout box, so `#bay` compensates
-with `height: calc(320px * var(--board-scale))` and
-`transform-origin: top center`.
+A scaled element still occupies its **unscaled** layout box. That makes a
+single wrapper impossible: one element cannot both carry the transform and
+shrink the space it takes. So the bay is two layers:
+
+| element | role |
+|---|---|
+| `#bay` | the layout slot. Its width/height are already multiplied by `--board-scale`, so the page reflows around the *visible* size. |
+| `.bay__frame` | the physical panel. Fixed at 506 × 346 (the board plus its padding and border) and carries `transform: scale(var(--board-scale))` with `transform-origin: top right` — the inline-start edge, since the page is RTL. |
+
+`#board` itself is never transformed and never resized: 480 × 320 at every
+breakpoint, exactly as this section requires. `ui.js` touches neither `#bay`
+nor `.bay__frame`.
+
+`--board-scale` steps down at 600px, 500px and 420px.
 
 ### Board capacity — how many pods actually fit
 
