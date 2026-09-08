@@ -202,10 +202,14 @@ both defined in `css/style.css`; CSS never assumes the class stays.
 ## 5. Board sizing — non-negotiable
 
 `#board` is **always `480 × 320` px**, at every resolution. Small screens scale
-**`#bay`**, the wrapper, with `transform: scale(var(--board-scale))`; `#board`
-itself never changes size. So the puzzle solution is identical on desktop and
-mobile. This is an explicit assignment requirement — do not swap it for a fluid
-width, and do not move the transform onto `#board`.
+**`.bay__frame`** with `transform: scale(var(--board-scale))`; `#board` itself
+never changes size. So the puzzle solution is identical on desktop and mobile.
+This is an explicit assignment requirement — do not swap it for a fluid width,
+and do not move the transform onto `#board`.
+
+Verified rather than assumed: all six level solutions from the level table were
+replayed at 1280px and at 390px and the pods' layout coordinates diffed. They
+are identical.
 
 A scaled element still occupies its **unscaled** layout box. That makes a
 single wrapper impossible: one element cannot both carry the transform and
