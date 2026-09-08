@@ -22,10 +22,14 @@
     <p id="level-indicator"></p>
     <p id="instruction"></p>
 
-    <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים.
-         dir="ltr" בכוונה — כיוון הכתיבה קובע את הציר הראשי של Flexbox, וב-RTL
-         הערך flex-end היה מצמיד לשמאל. ראו docs/CONTRACT.md. -->
-    <div id="board" dir="ltr"></div>
+    <!-- #bay שומר על המקום ומקבל את ה-scale במסכים קטנים; #board עצמו
+         נשאר 480x320 תמיד. אסור להזיז את ה-transform אל הלוח עצמו. -->
+    <div id="bay">
+      <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים.
+           dir="ltr" בכוונה — כיוון הכתיבה קובע את הציר הראשי של Flexbox, וב-RTL
+           הערך flex-end היה מצמיד לשמאל. ראו docs/CONTRACT.md. -->
+      <div id="board" dir="ltr"></div>
+    </div>
 
     <!-- ui.js מזריק לכאן select לכל מאפיין ברשימת level.controls -->
     <div id="controls"></div>

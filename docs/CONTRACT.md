@@ -102,6 +102,7 @@ Exactly one screen is visible at a time. Toggle with the **`.hidden`** class —
 
 | id | element |
 |---|---|
+| `#bay` | wrapper around `#board` that carries the responsive scale (see §5). Presentational, owned by Person A — but registered here so nobody deletes it. `ui.js` never touches it. |
 | `#btn-start` | start screen → game |
 | `#btn-continue` | resume from `localStorage`; JS shows/hides it |
 | `#btn-hint` | reveal `level.hint` (costs points) |
@@ -163,9 +164,14 @@ JS adds the class and removes it after the animation; CSS never assumes it stays
 ## 5. Board sizing — non-negotiable
 
 `#board` is **always `480 × 320` px**, at every resolution. Small screens scale
-the *wrapper* with `transform: scale(var(--board-scale))`, so the puzzle solution
-is identical on desktop and mobile. This is an explicit assignment requirement —
-do not swap it for a fluid width.
+**`#bay`**, the wrapper, with `transform: scale(var(--board-scale))`; `#board`
+itself never changes size. So the puzzle solution is identical on desktop and
+mobile. This is an explicit assignment requirement — do not swap it for a fluid
+width, and do not move the transform onto `#board`.
+
+A scaled element still occupies its unscaled layout box, so `#bay` compensates
+with `height: calc(320px * var(--board-scale))` and
+`transform-origin: top center`.
 
 ---
 
