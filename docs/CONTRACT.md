@@ -33,6 +33,12 @@ const LEVELS = [
 - `solution` values are **arrays** → more than one answer may be accepted.
 - Any property **not** in `solution` is ignored when checking, so extra controls
   never block a pass.
+- **Every key in `solution` must also appear in `controls`.** Otherwise the
+  player has no select that can produce that value and the level is
+  unpassable — `check()` looks for a value the UI never let them set. This
+  applies to `display` too: a level that requires `display: flex` must show a
+  `display` select. (The assignment wants `display: flex` taught, so level 1
+  is the natural place to put that select.)
 - `controls` drives the UI: the selects are rendered from data, there is zero
   per-level HTML.
 
@@ -42,10 +48,15 @@ const LEVELS = [
 |---|---|
 | `flex-direction` | `row`, `row-reverse`, `column`, `column-reverse` |
 | `justify-content` | `flex-start`, `flex-end`, `center`, `space-between`, `space-around`, `space-evenly` |
-| `align-items` | `stretch`, `flex-start`, `flex-end`, `center`, `baseline` |
+| `align-items` | `stretch`, `flex-start`, `flex-end`, `center` |
 | `flex-wrap` | `nowrap`, `wrap`, `wrap-reverse` |
 
 Defaults after `reset()`: `row` / `flex-start` / `stretch` / `nowrap`.
+
+`baseline` is deliberately **not** supported. Pods are near-identical boxes, so
+baseline alignment renders the same as `flex-start` and teaches the player
+nothing — a level using it would give no visual feedback about right and wrong.
+None of the eight levels need it.
 
 ---
 
@@ -126,6 +137,15 @@ Exactly one screen is visible at a time. Toggle with the **`.hidden`** class —
 `.pod` is the default size. `itemSizes` entries map `'sm' → .pod--sm`,
 `'lg' → .pod--lg`.
 
+**The visible pod number comes from CSS**, via a counter on `#board` — `ui.js`
+does not write any text into a pod. The counter follows DOM order, not visual
+order, which is the whole point: under `row-reverse` pod 1 still reads "1" while
+sitting at the far end, so the reversal is legible. Pods must stay empty; text
+inside one would break `align-items: stretch`.
+
+Pods have no fixed `width` or `height`, only `min-width` / `min-height`. That is
+what makes `stretch` visibly different from `flex-start` on both axes.
+
 Each control renders as:
 
 ```html
@@ -157,7 +177,14 @@ State classes: `.is-solved`, `.is-current`, `.is-locked`.
 | `.is-error` | `#board` | red shake |
 | `#msg.msg--ok` / `.msg--err` | `#msg` | message colour |
 
-JS adds the class and removes it after the animation; CSS never assumes it stays.
+**Teardown rule:** JS adds the class and removes it with a plain
+`setTimeout(..., 600)` — **not** an `animationend` listener. If CSS defines no
+animation for that class (or `prefers-reduced-motion` cuts it to 0.01ms and the
+element is off-screen), `animationend` may never fire and the class sticks on
+`#board` forever: the board stays flashed and the next `check()` cannot
+re-trigger it. CSS guarantees every one of these animations finishes inside
+600ms. The keyframe names are `bay-success` and `bay-error`; CSS never assumes
+the class stays.
 
 ---
 
