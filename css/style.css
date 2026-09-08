@@ -42,6 +42,9 @@
   --board-w: 480px;
   --board-h: 320px;
   --board-scale: 1;
+  /* המסגרת = הלוח + 12px ריפוד וגבול 1px מכל צד */
+  --bay-w: calc(var(--board-w) + 26px);
+  --bay-h: calc(var(--board-h) + 26px);
 
   /* תאי מטען. הגדלים נגזרים מקיבולת הלוח, לא מהעין: שטח הפנים הוא
      452x290 אחרי padding ומסגרת, ועמודה חייבת להכיל ארבעה תאים בלי
@@ -283,12 +286,24 @@ body {
    9. תא המעבר
    ========================================================================== */
 
+/* משבצת הפריסה. גודלה כבר מוקטן, ולכן הדף נערך סביב הגודל הנראה ולא
+   סביב תיבת הפריסה המקורית של אלמנט מוקטן. */
 .bay {
-  --screw: 11px;
   flex: none;
-  /* לא נמתח: גובהו נקבע ע"י הלוח. הקונסולה כן נמתחת אליו, וזה מה שנותן
+  /* לא נמתחת: גובהה נקבע ע"י הלוח. הקונסולה כן נמתחת אליה, וזה מה שנותן
      ל-margin-top: auto של הכפתורים מקום פנוי להיצמד אליו. */
   align-self: flex-start;
+  width: calc(var(--bay-w) * var(--board-scale));
+  height: calc(var(--bay-h) * var(--board-scale));
+}
+
+/* הלוח הפיזי. הוא זה שמוקטן, ו-#board שבתוכו נשאר 480x320 תמיד. */
+.bay__frame {
+  --screw: 11px;
+  width: var(--bay-w);
+  height: var(--bay-h);
+  transform: scale(var(--board-scale));
+  transform-origin: top right;   /* RTL — קצה ההתחלה */
   padding: 12px;
   background-color: var(--hull-lit);
   background-image:
@@ -699,4 +714,230 @@ body {
 
 .tally tr:last-child td {
   border-bottom: none;
+}
+
+/* ==========================================================================
+   16. תנועה
+
+   שלושה רגעים בלבד, וכולם עונים על משהו שקרה: כניסת התאים כשנטען שלב,
+   הבזק ירוק כשהעגינה נכונה, וניעור אדום כשלא. אין אנימציות כניסה על
+   כל אלמנט ואין אפקטים דקורטיביים.
+
+   reset.css כבר מכבד prefers-reduced-motion ומאפס את משכי האנימציות,
+   ולכן אין כאן טיפול נוסף. החוזה (§4) מחייב את ה-JS להסיר את מחלקות
+   המצב ב-setTimeout של 600ms ולא ב-animationend — כל האנימציות כאן
+   מסתיימות הרבה לפני כן.
+   ========================================================================== */
+
+/* --- כניסת התאים ------------------------------------------------------ */
+
+/* רצה מעצמה ברגע ש-ui.js יוצר את התאים, בלי מחלקה ובלי קריאה מה-JS.
+   מותנה בכך ש-ui.js בונה תאים רק במעבר שלב ולא בכל שינוי ערך בפקד —
+   ראו docs/CONTRACT.md §3. */
+@keyframes pod-dock {
+  from { opacity: 0; transform: translateY(-14px) scale(.92); }
+  to   { opacity: 1; transform: none; }
+}
+
+.pod {
+  animation: pod-dock 340ms cubic-bezier(.2, .8, .3, 1) both;
+  /* נעילת התאים בהצלחה נעשית ב-transition ולא באנימציה, כדי לא לדרוס את
+     animation של הכניסה — דריסה כזו הייתה מפעילה אותה מחדש בכל פעם
+     שמחלקת ההצלחה יורדת. */
+  transition: filter 200ms ease, box-shadow 200ms ease;
+}
+
+.pod:nth-child(1)  { animation-delay: 0ms; }
+.pod:nth-child(2)  { animation-delay: 45ms; }
+.pod:nth-child(3)  { animation-delay: 90ms; }
+.pod:nth-child(4)  { animation-delay: 135ms; }
+.pod:nth-child(5)  { animation-delay: 180ms; }
+.pod:nth-child(6)  { animation-delay: 225ms; }
+.pod:nth-child(7)  { animation-delay: 270ms; }
+.pod:nth-child(8)  { animation-delay: 315ms; }
+.pod:nth-child(9)  { animation-delay: 360ms; }
+.pod:nth-child(10)  { animation-delay: 405ms; }
+.pod:nth-child(11)  { animation-delay: 450ms; }
+.pod:nth-child(12)  { animation-delay: 495ms; }
+
+/* --- עגינה נכונה ------------------------------------------------------ */
+
+@keyframes bay-success {
+  0% {
+    border-color: #26343B;
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, .5),
+      inset 0 14px 30px -16px rgba(0, 0, 0, .95);
+  }
+  22% {
+    border-color: var(--go);
+    box-shadow:
+      inset 0 0 0 2px var(--go),
+      inset 0 0 70px -12px rgba(87, 192, 140, .45),
+      0 0 34px -6px rgba(87, 192, 140, .6);
+  }
+  100% {
+    border-color: #26343B;
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, .5),
+      inset 0 14px 30px -16px rgba(0, 0, 0, .95);
+  }
+}
+
+#board.is-success {
+  animation: bay-success 560ms ease-out both;
+}
+
+/* התאים "ננעלים": מתבהרים ומקבלים הילה ירוקה */
+#board.is-success .pod {
+  filter: brightness(1.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .5),
+    inset 0 -1px 0 rgba(0, 0, 0, .25),
+    0 3px 0 -1px rgba(0, 0, 0, .4),
+    0 0 16px -2px rgba(87, 192, 140, .85);
+}
+
+/* --- עגינה שגויה ------------------------------------------------------ */
+
+@keyframes bay-error {
+  0%, 100% { transform: translateX(0);    border-color: #26343B; }
+  15%      { transform: translateX(-7px); border-color: var(--fault-deep); }
+  30%      { transform: translateX(6px);  border-color: var(--fault-deep); }
+  45%      { transform: translateX(-5px); border-color: var(--fault-deep); }
+  60%      { transform: translateX(4px);  border-color: var(--fault-deep); }
+  80%      { transform: translateX(-2px); border-color: var(--fault-deep); }
+}
+
+#board.is-error {
+  animation: bay-error 460ms ease-in-out both;
+}
+
+/* --- משוב מגע ---------------------------------------------------------- */
+
+.btn,
+.level-chip,
+.control__select {
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.lamp {
+  transition: background-color 200ms ease, box-shadow 200ms ease;
+}
+
+/* ==========================================================================
+   17. רספונסיביות
+
+   הלוח נשאר 480x320 בכל רוחב מסך — זו דרישה מפורשת של המטלה, כי אחרת
+   הפתרון של שלב משתנה בין מכשירים. מה שקטן זו המסגרת סביבו, דרך
+   --board-scale. ראו docs/CONTRACT.md §5.
+   ========================================================================== */
+
+/* מתחת לרוחב הזה אין מקום לתא המעבר וללוח הבקרה זה לצד זה */
+@media (max-width: 960px) {
+  .deck {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .bay {
+    align-self: center;
+  }
+
+  .console {
+    flex: 1 1 100%;
+  }
+
+  /* הכפתורים כבר לא צריכים להיצמד לתחתית — אין למה ליישר */
+  .actions {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --board-scale: .9;
+  }
+
+  .screen {
+    padding: 20px 14px 30px;
+    gap: 14px;
+  }
+
+  .directive__text {
+    font-size: 1.06rem;
+  }
+
+  .controls {
+    font-size: .82rem;
+  }
+
+  .control__label {
+    width: 16ch;
+    font-size: .78rem;
+  }
+
+  .control__select {
+    font-size: .78rem;
+  }
+}
+
+@media (max-width: 500px) {
+  :root {
+    --board-scale: .75;
+  }
+
+  /* שם התחנה בפס העליון מיותר כשהמקום קצר; מספר השלב לא */
+  .rail__station {
+    font-size: 1rem;
+  }
+
+  .btn {
+    padding: 10px 15px;
+    font-size: .92rem;
+  }
+
+  /* מפת השלבים עולה לשורה משלה, ו"הקודם"/"הבא" מתחלקים בשורה שאחריה.
+     בלי זה כל אחד מהם נדחק לשורה נפרדת ומסגרת הניווט נמתחת לשלוש שורות. */
+  .steps {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .level-map {
+    flex: 1 1 100%;
+    order: -1;
+  }
+
+  .btn--step {
+    flex: 1 1 0;
+  }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --board-scale: .6;
+  }
+
+  /* התווית מעל התיבה. הבלוק כבר לא נראה כמו חוקת CSS, אבל שורה אחת
+     שנחתכת גרועה יותר מפריסה שונה. */
+  .control {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 3px;
+    padding-left: 12px;
+  }
+
+  .control__label {
+    width: auto;
+  }
+
+  .actions {
+    flex-direction: column;
+  }
+
+  .actions .btn {
+    width: 100%;
+  }
 }
