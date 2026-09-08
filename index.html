@@ -14,6 +14,8 @@
 </head>
 <body>
 
+  <main>
+
   <!-- ==================================================================
        מסך פתיחה
        ================================================================== -->
@@ -25,7 +27,7 @@
         תא המעבר מלא בתאי מטען שלא עוגנו. לוח הבקרה שלכם מדבר Flexbox בלבד.
       </p>
 
-      <ol class="brief">
+      <ol class="brief" role="list">
         <li class="brief__step">קראו את הוראת העגינה של השלב.</li>
         <li class="brief__step">בחרו ערכים למאפייני Flexbox בלוח הבקרה.</li>
         <li class="brief__step">התאים זזים מיד. כשהם במקום — בדקו.</li>
@@ -41,9 +43,10 @@
   <!-- ==================================================================
        מסך משחק
        ================================================================== -->
-  <section id="screen-game" class="screen screen--game hidden" aria-labelledby="instruction">
+  <section id="screen-game" class="screen screen--game hidden" aria-label="לוח המשחק">
     <header class="rail">
-      <p class="rail__station">תחנת חלל</p>
+      <!-- h1 ולא p: בזמן משחק מסך הפתיחה מוסתר, ובלי זה לדף אין h1 בכלל -->
+      <h1 class="rail__station">תחנת חלל</h1>
       <p id="level-indicator" class="rail__level"></p>
     </header>
 
@@ -93,7 +96,7 @@
   <section id="screen-win" class="screen screen--win hidden" aria-labelledby="win-title">
     <div class="plate plate--win">
       <p class="hatch-code">DOCKING&nbsp;COMPLETE</p>
-      <h2 id="win-title" class="title title--win">כל התאים עוגנו</h2>
+      <h1 id="win-title" class="title title--win">כל התאים עוגנו</h1>
       <p id="final-score" class="final-score"></p>
 
       <table class="tally">
@@ -109,6 +112,8 @@
       </div>
     </div>
   </section>
+
+  </main>
 
   <!-- סדר הטעינה חלק מהחוזה: levels → engine → ui → main -->
   <script src="js/levels.js" defer></script>
