@@ -1,0 +1,6 @@
+/* style.css — כל העיצוב של המשחק. באחריות Person A (ראו docs/CONTRACT.md).
+   כרגע שלד בלבד: רק המחלקה שמחליפה מסכים, שהיא חלק מהחוזה עם ה-JS. */
+
+.hidden {
+  display: none !important;
+}
