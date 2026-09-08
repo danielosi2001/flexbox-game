@@ -848,8 +848,10 @@ body {
     flex: 1 1 100%;
   }
 
-  /* הכפתורים כבר לא צריכים להיצמד לתחתית — אין למה ליישר */
-  .actions {
+  /* רק הקונסולה. ל-.actions--start יש אותה ספציפיות ומופיע קודם בקובץ,
+     ולכן כלל לא ממוקד כאן היה גובר עליו ומוחק את הריווח במסכי הפתיחה
+     והסיום. */
+  .console .actions {
     margin-top: 0;
   }
 }
@@ -933,11 +935,24 @@ body {
     width: auto;
   }
 
-  .actions {
+  .console .actions {
     flex-direction: column;
   }
 
-  .actions .btn {
+  .console .actions .btn {
     width: 100%;
+  }
+}
+
+/* מתחת ל-340px הרצפה .6 כבר לא נכנסת: המסגרת היא 506x.6 = 304px, ומסך
+   של 320px מותיר 292px בלבד. הלוח היה אוכל את שולי הדף, ומ-280px ומטה
+   גם גולש מהמסמך ממש. */
+@media (max-width: 340px) {
+  :root {
+    --board-scale: .5;
+  }
+
+  .screen {
+    padding: 16px 10px 24px;
   }
 }
