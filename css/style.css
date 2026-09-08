@@ -43,11 +43,13 @@
   --board-h: 320px;
   --board-scale: 1;
 
-  /* תאי מטען */
-  --pod: 64px;
-  --pod-sm: 44px;
-  --pod-lg: 92px;
-  --pod-gap: 12px;
+  /* תאי מטען. הגדלים נגזרים מקיבולת הלוח, לא מהעין: שטח הפנים הוא
+     452x290 אחרי padding ומסגרת, ועמודה חייבת להכיל ארבעה תאים בלי
+     שאיש ייחתך (4x56 + 3x10 = 254). ראו docs/CONTRACT.md §5. */
+  --pod: 56px;
+  --pod-sm: 40px;
+  --pod-lg: 80px;
+  --pod-gap: 10px;
 
   --r-plate: 14px;
   --r-panel: 8px;
@@ -273,7 +275,7 @@ body {
 .deck {
   width: min(1040px, 100%);
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 24px;
 }
 
@@ -284,6 +286,9 @@ body {
 .bay {
   --screw: 11px;
   flex: none;
+  /* לא נמתח: גובהו נקבע ע"י הלוח. הקונסולה כן נמתחת אליו, וזה מה שנותן
+     ל-margin-top: auto של הכפתורים מקום פנוי להיצמד אליו. */
+  align-self: flex-start;
   padding: 12px;
   background-color: var(--hull-lit);
   background-image:
@@ -589,9 +594,13 @@ body {
   border-color: var(--seam);
 }
 
-/* טבעת מיקוד דו-גונית, כדי שתיראה גם על ענבר וגם על דופן כהה */
+/* טבעת מיקוד דו-גונית, כדי שתיראה גם על ענבר וגם על דופן כהה.
+   ה-outline השקוף אינו קישוט: במצב forced-colors הדפדפן מוחק box-shadow
+   אבל שומר outline וצובע אותו בצבע מערכת. בלעדיו למשתמש מקלדת בניגודיות
+   גבוהה אין שום סימן מיקוד. */
 :where(button, select, a):focus-visible {
-  outline: none;
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   box-shadow: 0 0 0 2px var(--void), 0 0 0 4px var(--amber);
 }
 
