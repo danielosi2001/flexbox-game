@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="תא מטען">
+  <rect width="32" height="32" rx="6" fill="#141D22"/>
+  <rect x="8" y="6" width="16" height="20" rx="3" fill="#B8C4C9"/>
+  <rect x="8" y="13" width="16" height="6" fill="#8E9BA1"/>
+  <circle cx="16" cy="10" r="2.2" fill="#F0A63C"/>
+  <rect x="6" y="9"  width="2" height="14" rx="1" fill="#6E7C83"/>
+  <rect x="24" y="9" width="2" height="14" rx="1" fill="#6E7C83"/>
+</svg>
