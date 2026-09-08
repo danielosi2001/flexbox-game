@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flexbox Game — תחנת חלל</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ==================== מסך פתיחה ==================== -->
+  <section id="screen-start">
+    <h1>תחנת חלל</h1>
+    <p>סדרו את תאי המטען בתא המעבר בעזרת Flexbox.</p>
+    <button id="btn-start" type="button">התחלה</button>
+    <button id="btn-continue" type="button" class="hidden">המשך משחק</button>
+  </section>
+
+  <!-- ==================== מסך משחק ==================== -->
+  <section id="screen-game" class="hidden">
+    <p id="level-indicator"></p>
+    <p id="instruction"></p>
+
+    <!-- #bay שומר על המקום ומקבל את ה-scale במסכים קטנים; #board עצמו
+         נשאר 480x320 תמיד. אסור להזיז את ה-transform אל הלוח עצמו. -->
+    <div id="bay">
+      <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים.
+           dir="ltr" בכוונה — כיוון הכתיבה קובע את הציר הראשי של Flexbox, וב-RTL
+           הערך flex-end היה מצמיד לשמאל. ראו docs/CONTRACT.md. -->
+      <div id="board" dir="ltr"></div>
+    </div>
+
+    <!-- ui.js מזריק לכאן select לכל מאפיין ברשימת level.controls -->
+    <div id="controls"></div>
+
+    <p id="msg" role="status" aria-live="polite"></p>
+    <p id="hint" class="hidden"></p>
+
+    <div>
+      <button id="btn-prev" type="button">הקודם</button>
+      <button id="btn-check" type="button">בדיקה</button>
+      <button id="btn-reset" type="button">איפוס</button>
+      <button id="btn-hint" type="button">רמז</button>
+      <button id="btn-next" type="button">הבא</button>
+    </div>
+
+    <!-- ui.js מזריק לכאן כפתור לכל שלב -->
+    <nav id="level-map"></nav>
+  </section>
+
+  <!-- ==================== מסך סיום ==================== -->
+  <section id="screen-win" class="hidden">
+    <h2>כל התאים עגנו בהצלחה</h2>
+    <p id="final-score"></p>
+    <table>
+      <thead>
+        <tr><th>שלב</th><th>ניסיונות</th><th>ניקוד</th></tr>
+      </thead>
+      <tbody id="score-breakdown"></tbody>
+    </table>
+    <button id="btn-replay" type="button">שחקו שוב</button>
+  </section>
+
+  <!-- סדר הטעינה חלק מהחוזה: levels → engine → ui → main -->
+  <script src="js/levels.js" defer></script>
+  <script src="js/engine.js" defer></script>
+  <script src="js/ui.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>
