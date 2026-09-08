@@ -200,6 +200,33 @@ A scaled element still occupies its unscaled layout box, so `#bay` compensates
 with `height: calc(320px * var(--board-scale))` and
 `transform-origin: top center`.
 
+### Board capacity — how many pods actually fit
+
+`#board` is `overflow: hidden`, which is deliberate: the bay is a physical
+space. The cost is that a pod pushed past the edge does not overflow visibly,
+it **disappears**, and the player counts fewer pods than the level promised.
+
+Usable interior is **450 × 290** px — measured in a browser, not derived:
+`clientWidth` already excludes the 1px border, so it is 478 − 28px padding.
+With `--pod: 56px` and `--pod-gap: 10px`:
+
+| direction | fits without wrapping | measured |
+|---|---|---|
+| `row` / `row-reverse` | **6** default pods (6×56 + 5×10 = 386) | 7 pods → 1 clipped |
+| `column` / `column-reverse` | **4** default pods (4×56 + 3×10 = 254) | 5 pods → 1 clipped |
+| `column` with `'lg'` | **3** pods (3×80 + 2×10 = 260) | 4 pods → 1 clipped |
+
+Rules for `levels.js`:
+
+- A `column` level with **more than 4 items** must set `flex-wrap` in its
+  `controls`, or use `itemSizes` of `'sm'`, or it will lose pods off the bottom.
+- A `row` level with **more than 6 items** must do the same.
+
+Level 7 (ten pods, `flex-wrap` is the answer) is fine and intended — the ten
+pods overflow visibly at the right edge until the player wraps them, which is
+the lesson. Measured: with `nowrap` the pods run off the edge and are clipped
+mid-pod, so the problem is legible; with `wrap` they form two clean rows.
+
 ---
 
 ## 6. Script load order

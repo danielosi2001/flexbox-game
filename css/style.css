@@ -1,6 +1,702 @@
-/* style.css — כל העיצוב של המשחק. באחריות Person A (ראו docs/CONTRACT.md).
-   כרגע שלד בלבד: רק המחלקה שמחליפה מסכים, שהיא חלק מהחוזה עם ה-JS. */
+/* ==========================================================================
+   תחנת חלל — משחק Flexbox
+   העיצוב באחריות Person A. החוזה מול ה-JS מתועד ב-docs/CONTRACT.md.
 
+   הרעיון: לא החלל הריק אלא הפנים של תחנה עובדת — לוחות מתכת מוברגים,
+   תאורת מכשירים ענברית, ותא מעבר חשוך שאליו נכנסים תאי המטען.
+   ========================================================================== */
+
+/* ==========================================================================
+   1. אסימוני עיצוב
+   ========================================================================== */
+
+:root {
+  /* גוף התחנה — כחול-ירוק קר, לא שחור */
+  --void:      #080D10;
+  --hull:      #141D22;
+  --hull-lit:  #1D272D;
+  --panel:     #232F36;
+  --well:      #0F171B;
+  --seam:      #33454E;
+  --seam-lit:  #47606B;
+
+  /* תאורת מכשירים */
+  --amber:      #F0A63C;
+  --amber-deep: #9A6B22;
+  --go:         #57C08C;
+  --fault:      #F0776A;
+  --fault-deep: #C4402F;
+
+  /* טקסט */
+  --ink:       #DCE6EA;
+  --ink-dim:   #A3B2BA;   /* 6.3:1 על --panel */
+  --ink-faint: #869AA3;   /* 4.6:1 על --panel — הרף התחתון */
+
+  /* טיפוגרפיה */
+  --font-display: "Suez One", "Arial Hebrew", Georgia, serif;
+  --font-ui: "Assistant", "Segoe UI", system-ui, -apple-system, sans-serif;
+  /* מונוספייס רק לשמות וערכים של CSS — הם קוד, לא תווית עיצובית */
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* הלוח — 480x320 תמיד. ראו docs/CONTRACT.md §5 */
+  --board-w: 480px;
+  --board-h: 320px;
+  --board-scale: 1;
+
+  /* תאי מטען. הגדלים נגזרים מקיבולת הלוח, לא מהעין: שטח הפנים הוא
+     452x290 אחרי padding ומסגרת, ועמודה חייבת להכיל ארבעה תאים בלי
+     שאיש ייחתך (4x56 + 3x10 = 254). ראו docs/CONTRACT.md §5. */
+  --pod: 56px;
+  --pod-sm: 40px;
+  --pod-lg: 80px;
+  --pod-gap: 10px;
+
+  --r-plate: 14px;
+  --r-panel: 8px;
+  --r-chip: 4px;
+
+  --shadow-panel: 0 18px 40px -22px rgba(0, 0, 0, .9);
+}
+
+/* ==========================================================================
+   2. מעטפת הדף
+   ========================================================================== */
+
+body {
+  font-family: var(--font-ui);
+  font-weight: 400;
+  color: var(--ink);
+  background-color: var(--void);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 50% -10%, #16232A 0%, transparent 70%),
+    url("../assets/starfield.svg");
+  background-repeat: no-repeat, repeat;
+}
+
+/* מחליף המסכים — חלק מהחוזה עם ה-JS */
 .hidden {
   display: none !important;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 28px 20px 40px;
+}
+
+/* ==========================================================================
+   3. טיפוגרפיה
+   ========================================================================== */
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 7vw, 4.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .5);
+}
+
+.title--win {
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--go);
+}
+
+/* קוד הפתח — טקסט טכני חרוט על הדופן, לא תווית עיצובית מעל תוכן */
+.hatch-code {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .22em;
+  color: var(--ink-faint);
+  direction: ltr;
+  text-align: start;
+}
+
+.lede {
+  max-width: 46ch;
+  font-size: 1.06rem;
+  color: var(--ink-dim);
+}
+
+/* ==========================================================================
+   4. לוחות מוברגים — הצורה החוזרת של הממשק
+   ========================================================================== */
+
+.plate {
+  --screw: 12px;
+  position: relative;
+  padding: 30px 34px 34px;
+  background-color: var(--hull);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, .035), transparent 120px),
+    radial-gradient(circle at var(--screw) var(--screw), var(--seam-lit) 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - var(--screw)) var(--screw), var(--seam-lit) 1.6px, transparent 2.2px),
+    radial-gradient(circle at var(--screw) calc(100% - var(--screw)), var(--seam-lit) 1.6px, transparent 2.2px),
+    radial-gradient(circle at calc(100% - var(--screw)) calc(100% - var(--screw)), var(--seam-lit) 1.6px, transparent 2.2px);
+  border: 1px solid var(--seam);
+  border-radius: var(--r-plate);
+  box-shadow: var(--shadow-panel);
+}
+
+.plate--start,
+.plate--win {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* ==========================================================================
+   5. מסך פתיחה
+   ========================================================================== */
+
+/* שלושת השלבים הם רצף אמיתי, ולכן ממוספרים */
+.brief {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: brief;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--seam);
+  padding-top: 18px;
+}
+
+.brief__step {
+  counter-increment: brief;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  color: var(--ink-dim);
+}
+
+.brief__step::before {
+  content: counter(brief);
+  flex: none;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--amber);
+  border: 1px solid var(--amber-deep);
+  border-radius: 50%;
+  transform: translateY(2px);
+}
+
+/* ==========================================================================
+   6. מסך משחק — פס עליון
+   ========================================================================== */
+
+.screen--game {
+  gap: 18px;
+}
+
+.rail {
+  width: min(1040px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--seam);
+}
+
+.rail__station {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+.rail__level {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--amber);
+}
+
+/* ==========================================================================
+   7. הוראת המשימה
+   ========================================================================== */
+
+.directive {
+  width: min(1040px, 100%);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, var(--hull-lit), var(--hull));
+  border: 1px solid var(--seam);
+  border-inline-start: 3px solid var(--amber);
+  border-radius: var(--r-panel);
+}
+
+.directive__text {
+  font-size: 1.18rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--ink);
+  max-width: 72ch;
+}
+
+/* נורית חיווי — חלק מהשפה הוויזואלית של לוח מכשירים */
+.lamp {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: .45em;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 3px rgba(240, 166, 60, .14), 0 0 12px rgba(240, 166, 60, .55);
+}
+
+/* ==========================================================================
+   8. הסיפון — תא המעבר ולוח הבקרה זה לצד זה
+   ========================================================================== */
+
+.deck {
+  width: min(1040px, 100%);
+  display: flex;
+  align-items: stretch;
+  gap: 24px;
+}
+
+/* ==========================================================================
+   9. תא המעבר
+   ========================================================================== */
+
+.bay {
+  --screw: 11px;
+  flex: none;
+  /* לא נמתח: גובהו נקבע ע"י הלוח. הקונסולה כן נמתחת אליו, וזה מה שנותן
+     ל-margin-top: auto של הכפתורים מקום פנוי להיצמד אליו. */
+  align-self: flex-start;
+  padding: 12px;
+  background-color: var(--hull-lit);
+  background-image:
+    radial-gradient(circle at var(--screw) var(--screw), var(--seam-lit) 1.5px, transparent 2.1px),
+    radial-gradient(circle at calc(100% - var(--screw)) var(--screw), var(--seam-lit) 1.5px, transparent 2.1px),
+    radial-gradient(circle at var(--screw) calc(100% - var(--screw)), var(--seam-lit) 1.5px, transparent 2.1px),
+    radial-gradient(circle at calc(100% - var(--screw)) calc(100% - var(--screw)), var(--seam-lit) 1.5px, transparent 2.1px);
+  border: 1px solid var(--seam);
+  border-radius: 10px;
+  box-shadow: var(--shadow-panel);
+}
+
+/* הלוח עצמו. גודלו קבוע 480x320 בכל רזולוציה — ראו docs/CONTRACT.md §5.
+   ה-display/flex-* כאן הם רק ברירת מחדל; engine.js דורס אותם ב-inline style. */
+#board {
+  width: var(--board-w);
+  height: var(--board-h);
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: var(--pod-gap);
+  padding: 14px;
+  overflow: hidden;
+
+  background-color: var(--well);
+  /* סימוני סיפון: רשת נקודות דהויה */
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(122, 140, 149, .13) 1px, transparent 0);
+  background-size: 16px 16px;
+  border: 1px solid #26343B;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, .5),
+    inset 0 14px 30px -16px rgba(0, 0, 0, .95);
+
+  /* המספור של התאים מגיע מכאן, ועוקב אחרי סדר ה-DOM ולא אחרי הסדר
+     הוויזואלי — בדיוק מה שהופך את row-reverse לקריא. */
+  counter-reset: pod;
+}
+
+/* ==========================================================================
+   10. תאי מטען
+   ========================================================================== */
+
+/* בלי width/height קבועים, רק מינימום — זה מה שגורם ל-align-items: stretch
+   להיראות שונה מ-flex-start, גם בשורה וגם בעמודה. */
+.pod {
+  min-width: var(--pod);
+  min-height: var(--pod);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* מתכת מוברשת עם צלעות חיזוק, כדי שתא שנמתח לגובה מלא ב-
+     align-items: stretch עדיין ייקרא כמיכל ולא כעמוד צבע */
+  background-image:
+    repeating-linear-gradient(
+      180deg,
+      rgba(255, 255, 255, .16) 0 1px,
+      transparent 1px 9px,
+      rgba(0, 0, 0, .09) 9px 10px,
+      transparent 10px 18px
+    ),
+    linear-gradient(158deg, #C9D4D9 0%, #A3B0B7 48%, #808F97 100%);
+  border: 1px solid #67757C;
+  border-radius: 7px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .5),
+    inset 0 -1px 0 rgba(0, 0, 0, .25),
+    0 3px 0 -1px rgba(0, 0, 0, .4);
+}
+
+/* חלון התצוגה של התא */
+.pod::before {
+  content: "";
+  position: absolute;
+  inset-inline: 6px;
+  top: 50%;
+  height: 22px;
+  transform: translateY(-50%);
+  background: #162126;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .8);
+}
+
+/* מספר התא, קורא מתוך החלון */
+.pod::after {
+  counter-increment: pod;
+  content: counter(pod);
+  position: relative;
+  font-family: var(--font-mono);
+  font-size: .8rem;
+  line-height: 1;
+  color: var(--amber);
+  text-shadow: 0 0 8px rgba(240, 166, 60, .6);
+}
+
+.pod--sm {
+  min-width: var(--pod-sm);
+  min-height: var(--pod-sm);
+}
+
+.pod--sm::before { height: 16px; }
+.pod--sm::after  { font-size: .68rem; }
+
+.pod--lg {
+  min-width: var(--pod-lg);
+  min-height: var(--pod-lg);
+}
+
+.pod--lg::before { height: 28px; }
+.pod--lg::after  { font-size: .95rem; }
+
+/* ==========================================================================
+   11. לוח הבקרה — נראה כמו חוקת CSS, כי זה בדיוק מה שהשחקן כותב
+   ========================================================================== */
+
+.console {
+  --screw: 11px;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background-color: var(--panel);
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, .04), transparent 90px),
+    radial-gradient(circle at var(--screw) var(--screw), var(--seam-lit) 1.5px, transparent 2.1px),
+    radial-gradient(circle at calc(100% - var(--screw)) var(--screw), var(--seam-lit) 1.5px, transparent 2.1px);
+  border: 1px solid var(--seam);
+  border-radius: 10px;
+  box-shadow: var(--shadow-panel);
+}
+
+/* הסוגריים של החוקה. #controls ריק עד ש-ui.js ממלא אותו, ואז זה נקרא
+   כמו בלוק CSS אמיתי. */
+.controls {
+  direction: ltr;
+  font-family: var(--font-mono);
+  font-size: .9rem;
+  color: var(--ink-faint);
+}
+
+.controls::before {
+  content: "#board {";
+  display: block;
+  margin-bottom: 10px;
+}
+
+.controls::after {
+  content: "}";
+  display: block;
+  margin-top: 10px;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 0 5px 20px;
+}
+
+.control__label {
+  flex: none;
+  width: 17ch;          /* justify-content: = 16 תווים, ועוד אוויר */
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--ink-dim);
+}
+
+.control__label::after {
+  content: ":";
+  color: var(--ink-faint);
+}
+
+.control__select {
+  flex: 1 1 auto;
+  min-width: 0;
+  appearance: none;
+  padding: 8px 30px 8px 11px;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--amber);
+  background-color: var(--well);
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--ink-dim) 50%),
+    linear-gradient(135deg, var(--ink-dim) 50%, transparent 50%);
+  background-position: right 15px center, right 10px center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  border: 1px solid var(--seam);
+  border-radius: var(--r-chip);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, .6);
+  cursor: pointer;
+}
+
+.control__select:hover {
+  border-color: var(--seam-lit);
+}
+
+/* רשימת האפשרויות נפתחת בצבעי המערכת, לכן מגדירים לה צבע קריא */
+.control__select option {
+  background-color: var(--hull);
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   12. הודעות ורמז
+   ========================================================================== */
+
+.msg {
+  min-height: 1.5em;
+  font-weight: 600;
+  font-size: .98rem;
+}
+
+.msg--ok  { color: var(--go); }
+.msg--err { color: var(--fault); }
+
+.hint {
+  padding: 11px 13px;
+  font-size: .95rem;
+  color: var(--ink-dim);
+  background: rgba(240, 166, 60, .07);
+  border: 1px dashed var(--amber-deep);
+  border-radius: var(--r-panel);
+}
+
+/* ==========================================================================
+   13. כפתורים
+   ========================================================================== */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.actions--start {
+  margin-top: 6px;
+}
+
+.btn {
+  padding: 11px 20px;
+  font-family: var(--font-ui);
+  font-size: .98rem;
+  font-weight: 600;
+  color: var(--ink);
+  background-color: var(--hull-lit);
+  border: 1px solid var(--seam);
+  border-radius: var(--r-panel);
+}
+
+.btn:hover {
+  background-color: var(--panel);
+  border-color: var(--seam-lit);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--primary {
+  color: #141A0A;
+  background-color: var(--amber);
+  border-color: #C98A2C;
+  box-shadow: 0 2px 0 #8E6420, 0 0 22px -6px rgba(240, 166, 60, .7);
+}
+
+.btn--primary:hover {
+  background-color: #FFB65A;
+}
+
+.btn--ghost {
+  color: var(--ink-dim);
+  background-color: transparent;
+}
+
+.btn--ghost:hover {
+  color: var(--ink);
+  background-color: var(--hull-lit);
+}
+
+.btn--step {
+  padding: 8px 16px;
+  font-size: .9rem;
+}
+
+.btn:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn:disabled:hover {
+  background-color: var(--hull-lit);
+  border-color: var(--seam);
+}
+
+/* טבעת מיקוד דו-גונית, כדי שתיראה גם על ענבר וגם על דופן כהה.
+   ה-outline השקוף אינו קישוט: במצב forced-colors הדפדפן מוחק box-shadow
+   אבל שומר outline וצובע אותו בצבע מערכת. בלעדיו למשתמש מקלדת בניגודיות
+   גבוהה אין שום סימן מיקוד. */
+:where(button, select, a):focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--void), 0 0 0 4px var(--amber);
+}
+
+/* ==========================================================================
+   14. מפת שלבים
+   ========================================================================== */
+
+.steps {
+  width: min(1040px, 100%);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--seam);
+}
+
+.level-map {
+  flex: 1 1 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.level-chip {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: .85rem;
+  color: var(--ink-faint);
+  background-color: var(--hull);
+  border: 1px solid var(--seam);
+  border-radius: var(--r-chip);
+}
+
+.level-chip:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--seam-lit);
+}
+
+.level-chip.is-solved {
+  color: var(--go);
+  border-color: rgba(87, 192, 140, .45);
+  background-color: rgba(87, 192, 140, .1);
+}
+
+.level-chip.is-current {
+  color: #141A0A;
+  background-color: var(--amber);
+  border-color: var(--amber);
+}
+
+.level-chip.is-locked {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   15. מסך סיום
+   ========================================================================== */
+
+/* direction: ltr הכרחי, לא קישוט. בפסקה RTL האלגוריתם הדו-כיווני הופך את
+   סדר שני מקטעי הספרות, ו"720 / 800" מוצג כ-"800 / 720" — השחקן קורא ניקוד
+   הפוך. הצמדה לימין נשמרת ידנית. */
+.final-score {
+  direction: ltr;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  color: var(--amber);
+}
+
+.tally {
+  width: 100%;
+  font-size: .95rem;
+}
+
+.tally th,
+.tally td {
+  padding: 9px 12px;
+  text-align: start;
+  border-bottom: 1px solid var(--seam);
+}
+
+.tally th {
+  font-weight: 600;
+  color: var(--ink-faint);
+}
+
+.tally td {
+  font-family: var(--font-mono);
+  color: var(--ink-dim);
+}
+
+.tally tr:last-child td {
+  border-bottom: none;
 }

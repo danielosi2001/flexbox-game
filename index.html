@@ -3,64 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flexbox Game — תחנת חלל</title>
+  <title>תחנת חלל — משחק Flexbox</title>
+  <meta name="description" content="משחק לימוד Flexbox בעברית: סדרו תאי מטען בתא המעבר של תחנת חלל.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;800&family=Suez+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- ==================== מסך פתיחה ==================== -->
-  <section id="screen-start">
-    <h1>תחנת חלל</h1>
-    <p>סדרו את תאי המטען בתא המעבר בעזרת Flexbox.</p>
-    <button id="btn-start" type="button">התחלה</button>
-    <button id="btn-continue" type="button" class="hidden">המשך משחק</button>
+  <main>
+
+  <!-- ==================================================================
+       מסך פתיחה
+       ================================================================== -->
+  <section id="screen-start" class="screen screen--start" aria-labelledby="start-title">
+    <div class="plate plate--start">
+      <p class="hatch-code">AIRLOCK&nbsp;07</p>
+      <h1 id="start-title" class="title">תחנת חלל</h1>
+      <p class="lede">
+        תא המעבר מלא בתאי מטען שלא עוגנו. לוח הבקרה שלכם מדבר Flexbox בלבד.
+      </p>
+
+      <ol class="brief" role="list">
+        <li class="brief__step">קראו את הוראת העגינה של השלב.</li>
+        <li class="brief__step">בחרו ערכים למאפייני Flexbox בלוח הבקרה.</li>
+        <li class="brief__step">התאים זזים מיד. כשהם במקום — בדקו.</li>
+      </ol>
+
+      <div class="actions actions--start">
+        <button id="btn-start" type="button" class="btn btn--primary">התחלת המשימה</button>
+        <button id="btn-continue" type="button" class="btn btn--ghost hidden">המשיכו מהשלב האחרון</button>
+      </div>
+    </div>
   </section>
 
-  <!-- ==================== מסך משחק ==================== -->
-  <section id="screen-game" class="hidden">
-    <p id="level-indicator"></p>
-    <p id="instruction"></p>
+  <!-- ==================================================================
+       מסך משחק
+       ================================================================== -->
+  <section id="screen-game" class="screen screen--game hidden" aria-label="לוח המשחק">
+    <header class="rail">
+      <!-- h1 ולא p: בזמן משחק מסך הפתיחה מוסתר, ובלי זה לדף אין h1 בכלל -->
+      <h1 class="rail__station">תחנת חלל</h1>
+      <p id="level-indicator" class="rail__level"></p>
+    </header>
 
-    <!-- #bay שומר על המקום ומקבל את ה-scale במסכים קטנים; #board עצמו
-         נשאר 480x320 תמיד. אסור להזיז את ה-transform אל הלוח עצמו. -->
-    <div id="bay">
-      <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים.
-           dir="ltr" בכוונה — כיוון הכתיבה קובע את הציר הראשי של Flexbox, וב-RTL
-           הערך flex-end היה מצמיד לשמאל. ראו docs/CONTRACT.md. -->
-      <div id="board" dir="ltr"></div>
+    <div class="directive">
+      <span class="lamp" aria-hidden="true"></span>
+      <h2 id="instruction" class="directive__text"></h2>
     </div>
 
-    <!-- ui.js מזריק לכאן select לכל מאפיין ברשימת level.controls -->
-    <div id="controls"></div>
+    <div class="deck">
 
-    <p id="msg" role="status" aria-live="polite"></p>
-    <p id="hint" class="hidden"></p>
+      <!-- #bay שומר על המקום ומקבל את ה-scale במסכים קטנים; #board עצמו
+           נשאר 480x320 תמיד. אסור להזיז את ה-transform אל הלוח עצמו. -->
+      <div id="bay" class="bay">
+        <!-- הלוח: 480x320 קבוע. ui.js מזריק לכאן את התאים.
+             dir="ltr" בכוונה — כיוון הכתיבה קובע את הציר הראשי של Flexbox,
+             וב-RTL הערך flex-end היה מצמיד לשמאל. ראו docs/CONTRACT.md. -->
+        <div id="board" dir="ltr"></div>
+      </div>
 
-    <div>
-      <button id="btn-prev" type="button">הקודם</button>
-      <button id="btn-check" type="button">בדיקה</button>
-      <button id="btn-reset" type="button">איפוס</button>
-      <button id="btn-hint" type="button">רמז</button>
-      <button id="btn-next" type="button">הבא</button>
+      <div class="console">
+        <!-- ui.js מזריק לכאן select לכל מאפיין ברשימת level.controls -->
+        <div id="controls" class="controls"></div>
+
+        <p id="msg" class="msg" role="status" aria-live="polite"></p>
+        <p id="hint" class="hint hidden"></p>
+
+        <div class="actions">
+          <button id="btn-check" type="button" class="btn btn--primary">בדקו עגינה</button>
+          <button id="btn-reset" type="button" class="btn btn--ghost">איפוס</button>
+          <button id="btn-hint"  type="button" class="btn btn--ghost">רמז</button>
+        </div>
+      </div>
     </div>
 
-    <!-- ui.js מזריק לכאן כפתור לכל שלב -->
-    <nav id="level-map"></nav>
+    <nav class="steps" aria-label="מפת שלבים">
+      <button id="btn-prev" type="button" class="btn btn--step">הקודם</button>
+      <!-- ui.js מזריק לכאן <button class="level-chip"> לכל שלב.
+           div ולא ol — לפי החוזה הילדים הם כפתורים, ו-ol מחייב li. -->
+      <div id="level-map" class="level-map"></div>
+      <button id="btn-next" type="button" class="btn btn--step">הבא</button>
+    </nav>
   </section>
 
-  <!-- ==================== מסך סיום ==================== -->
-  <section id="screen-win" class="hidden">
-    <h2>כל התאים עגנו בהצלחה</h2>
-    <p id="final-score"></p>
-    <table>
-      <thead>
-        <tr><th>שלב</th><th>ניסיונות</th><th>ניקוד</th></tr>
-      </thead>
-      <tbody id="score-breakdown"></tbody>
-    </table>
-    <button id="btn-replay" type="button">שחקו שוב</button>
+  <!-- ==================================================================
+       מסך סיום
+       ================================================================== -->
+  <section id="screen-win" class="screen screen--win hidden" aria-labelledby="win-title">
+    <div class="plate plate--win">
+      <p class="hatch-code">DOCKING&nbsp;COMPLETE</p>
+      <h1 id="win-title" class="title title--win">כל התאים עוגנו</h1>
+      <p id="final-score" class="final-score"></p>
+
+      <table class="tally">
+        <caption class="visually-hidden">פירוט ניקוד לפי שלב</caption>
+        <thead>
+          <tr><th scope="col">שלב</th><th scope="col">ניסיונות</th><th scope="col">ניקוד</th></tr>
+        </thead>
+        <tbody id="score-breakdown"></tbody>
+      </table>
+
+      <div class="actions actions--start">
+        <button id="btn-replay" type="button" class="btn btn--primary">שחקו שוב</button>
+      </div>
+    </div>
   </section>
+
+  </main>
 
   <!-- סדר הטעינה חלק מהחוזה: levels → engine → ui → main -->
   <script src="js/levels.js" defer></script>
