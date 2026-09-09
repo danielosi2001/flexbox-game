@@ -58,14 +58,14 @@ flexbox-game/
 | **דניאל** | Front — HTML, CSS, עיצוב | `index.html`, `css/`, `assets/` |
 | **איתי** | Logic — JavaScript | `js/` |
 
-כלל שמירה על מיזוגים נקיים: **Person A לא נוגע ב-`js/`, Person B לא נוגע
-ב-`css/`.** החוזה המשותף מתועד ב-[`docs/CONTRACT.md`](docs/CONTRACT.md) ומשתנה
-רק ב-PR ששני הצדדים מאשרים.
+כלל שמירה על מיזוגים נקיים: **דניאל לא נוגע ב-`js/`, איתי לא נוגע ב-`css/`.**
+החוזה המשותף מתועד ב-[`docs/CONTRACT.md`](docs/CONTRACT.md) ומשתנה רק ב-PR
+ששני הצדדים מאשרים.
 
 ## תהליך העבודה ב-git
 
 `main` מוגן — כל שינוי נכנס דרך branch ו-Pull Request:
 
 - `chore/*` — תשתית ושלד
-- `feat/ui-*` — העבודה של Person A
-- `feat/logic-*` — העבודה של Person B
+- `feat/ui-*` — העבודה של דניאל
+- `feat/logic-*` — העבודה של איתי
