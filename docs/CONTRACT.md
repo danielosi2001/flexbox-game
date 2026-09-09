@@ -10,6 +10,10 @@ structure.** That is what keeps merges clean.
 
 ## 1. Level data model (`js/levels.js`)
 
+The game's levels live in their own folder, one object per level, and
+nothing else in the codebase knows what a level contains. The global is
+`LEVELS`.
+
 ```js
 const LEVELS = [
   {
@@ -41,6 +45,10 @@ const LEVELS = [
   is the natural place to put that select.)
 - `controls` drives the UI: the selects are rendered from data, there is zero
   per-level HTML.
+- **No string literals live in the JS.** Player-facing text, element ids and
+  class names are all in `js/constants.js` (`TEXT`, `DOM`, `CLASS`). Level
+  text is the exception and stays in `js/levels.js`, because it is
+  level data rather than interface copy.
 
 ### Values the CSS is built to support
 
@@ -242,7 +250,7 @@ With `--pod: 56px` and `--pod-gap: 10px`:
 | `column` / `column-reverse` | **4** default pods (4×56 + 3×10 = 254) | 5 pods → 1 clipped |
 | `column` with `'lg'` | **3** pods (3×80 + 2×10 = 260) | 4 pods → 1 clipped |
 
-Rules for `levels.js`:
+Rules for `js/levels.js`:
 
 - A `column` level with **more than 4 items** must set `flex-wrap` in its
   `controls`, or use `itemSizes` of `'sm'`, or it will lose pods off the bottom.
@@ -257,5 +265,13 @@ mid-pod, so the problem is legible; with `wrap` they form two clean rows.
 
 ## 6. Script load order
 
-`levels.js → engine.js → ui.js → main.js`, all `defer`, no modules and no
-bundler, so GitHub Pages serves it with zero config.
+`js/levels.js → js/constants.js → js/engine.js → js/ui.js →
+js/main.js`, all `defer`, no modules and no bundler, so GitHub Pages serves it
+with zero config.
+
+Data and constants load first because `engine.js` reads `LEVELS` and `TEXT`
+at load time, when it validates the level set.
+
+Without a bundler there is no way to add a file except a `<script>` tag, so
+this section and the tags in `index.html` change together — that is the one
+place Person B's file layout reaches into Person A's markup.
