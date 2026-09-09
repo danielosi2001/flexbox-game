@@ -8,10 +8,10 @@ HTML + CSS + JavaScript בלבד — **ללא ספריות חיצוניות ול
 
 ## מגישים
 
-| שם | ת״ז |
-|---|---|
-| _להשלמה_ | _להשלמה_ |
-| _להשלמה_ | _להשלמה_ |
+| שם | ת״ז | תחום |
+|---|---|---|
+| דניאל אוסי | 323129361 | Front — HTML, CSS, עיצוב |
+| איתי צעיר הרים | 325772960 | Logic — JavaScript |
 
 ## קישור חי
 
@@ -40,7 +40,7 @@ flexbox-game/
 │   ├── engine.js       # מצב, ולידציה, ניקוד, localStorage
 │   ├── ui.js           # רינדור פקדים, לוח, הודעות, מפת שלבים
 │   └── main.js         # אתחול וחיווט אירועים
-├── assets/             # SVG של התאים, רקע התחנה
+├── assets/             # רקע הכוכבים ו-favicon (התאים עצמם נבנים ב-CSS)
 └── docs/
     └── CONTRACT.md     # חוזה הנתונים וה-DOM בין שני המפתחים
 ```
@@ -48,12 +48,15 @@ flexbox-game/
 סדר הטעינה ב-`index.html` הוא `levels.js → engine.js → ui.js → main.js` עם
 `defer`. בלי מודולים ובלי bundler — עובד ב-GitHub Pages ללא הגדרות.
 
+תאי המטען בנויים מגרדיאנטים ב-CSS ולא מקובצי SVG. תמונת רקע הייתה מתעוותת תחת
+`align-items: stretch`, כלומר בדיוק המאפיין שהמשחק בא ללמד.
+
 ## חלוקת עבודה
 
 | | תחום | קבצים |
 |---|---|---|
-| **Person A** | Front — HTML, CSS, עיצוב | `index.html`, `css/`, `assets/` |
-| **Person B** | Logic — JavaScript | `js/` |
+| **דניאל** | Front — HTML, CSS, עיצוב | `index.html`, `css/`, `assets/` |
+| **איתי** | Logic — JavaScript | `js/` |
 
 כלל שמירה על מיזוגים נקיים: **Person A לא נוגע ב-`js/`, Person B לא נוגע
 ב-`css/`.** החוזה המשותף מתועד ב-[`docs/CONTRACT.md`](docs/CONTRACT.md) ומשתנה
