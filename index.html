@@ -122,8 +122,11 @@
 
   </main>
 
-  <!-- סדר הטעינה חלק מהחוזה: levels → engine → ui → main -->
+  <!-- סדר הטעינה חלק מהחוזה: levels → constants → engine → ui → main.
+       levels.js הוא נתוני השלבים, constants.js הוא המזהים, המחלקות
+       והטקסט. ראו docs/CONTRACT.md §6. -->
   <script src="js/levels.js" defer></script>
+  <script src="js/constants.js" defer></script>
   <script src="js/engine.js" defer></script>
   <script src="js/ui.js" defer></script>
   <script src="js/main.js" defer></script>
