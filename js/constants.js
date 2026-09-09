@@ -45,6 +45,10 @@ const FEEDBACK = {
 
 const CLASS = {
   hidden:        'hidden',
+  levelChip:     'level-chip',
+  chipSolved:    'is-solved',
+  chipCurrent:   'is-current',
+  chipLocked:    'is-locked',
   pod:           'pod',
   podSize:       (size) => `pod--${size}`,
   control:       'control',
@@ -59,6 +63,12 @@ const CLASS = {
 const TEXT = {
   levelIndicator: (current, total) => `שלב ${current} מתוך ${total}`,
   finalScore:     (solved, total) => `${solved} / ${total} שלבים הושלמו`,
+  tallyTotal:     'סה״כ',
+
+  // ניקוד לפי ניסיונות בלבד, בלי מערכת נקודות: שלושה כוכבים בניסיון
+  // הראשון, שניים ב-2-3, אחד מ-4 ומעלה. רמז מוריד כוכב.
+  stars:      (count) => '★'.repeat(count) + '☆'.repeat(3 - count),
+  noStars:    '—',
 
   check: {
     ok:     'עגינה תקינה. אפשר להתקדם לשלב הבא.',
@@ -74,6 +84,12 @@ const TEXT = {
     unknownValue:   (prop, value) => `הערך "${value}" אינו קיים ברשימת האפשרויות של ${prop}.`,
     sizesLength:    (sizes, items) => `itemSizes באורך ${sizes} מול items=${items}.`,
   },
+};
+
+// מפתח האחסון. הגרסה בשם: אם מבנה השמירה ישתנה, שמירה ישנה פשוט לא
+// תיטען במקום להישבר.
+const STORAGE = {
+  key: 'flexbox-game:v1',
 };
 
 const TIMING = {
