@@ -1,4 +1,5 @@
-// js/engine.js — מצב המשחק והוולידציה. אין כאן DOM. ראו docs/CONTRACT.md
+// js/engine.js — מצב המשחק, הוולידציה והשמירה. אין כאן DOM.
+// ראו docs/CONTRACT.md
 
 const Engine = (() => {
   'use strict';
@@ -23,11 +24,48 @@ const Engine = (() => {
     'flex-wrap':       'nowrap',
   };
 
+  const blankProgress = () => LEVELS.map(() => ({ solved: false, attempts: 0, hintUsed: false }));
+
   const state = {
     index: 0,
     values: {},
-    solved: LEVELS.map(() => false),
+    progress: blankProgress(),
   };
+
+  // כל גישה ל-localStorage עטופה: בגלישה פרטית ובדפדפן שחוסם אחסון
+  // הקריאה עצמה זורקת, ומשחק שקורס בגלל שמירה גרוע משמירה שלא עבדה.
+  const storage = {
+    read: () => {
+      try { return localStorage.getItem(STORAGE.key); } catch { return null; }
+    },
+    write: (value) => {
+      try { localStorage.setItem(STORAGE.key, value); } catch { /* אין אחסון — משחקים בלי שמירה */ }
+    },
+    clear: () => {
+      try { localStorage.removeItem(STORAGE.key); } catch { /* כנ"ל */ }
+    },
+  };
+
+  // שמירה פגומה, ישנה, או כזו שנכתבה כשהיו פחות שלבים — נזרקת ומתחילים
+  // מחדש. עדיף מלנסות לתקן אותה ולשחק עם מצב לא עקבי.
+  const readSave = () => {
+    const raw = storage.read();
+    if (!raw) return null;
+    try {
+      const save = JSON.parse(raw);
+      if (!Array.isArray(save?.progress) || save.progress.length !== LEVELS.length) return null;
+
+      return save.progress.map((entry) => ({
+        solved: entry?.solved === true,
+        attempts: Number.isInteger(entry?.attempts) && entry.attempts >= 0 ? entry.attempts : 0,
+        hintUsed: entry?.hintUsed === true,
+      }));
+    } catch {
+      return null;
+    }
+  };
+
+  const persist = () => storage.write(JSON.stringify({ progress: state.progress }));
 
   // שלב שדורש ערך שאין לו פקד פשוט לא נפתר לעולם, ועל המסך זה לא נראה
   // כמו תקלה. לכן הבדיקה רצה בטעינה וצועקת לקונסולה.
@@ -56,6 +94,7 @@ const Engine = (() => {
   };
 
   const current = () => LEVELS[state.index];
+  const entry = (i = state.index) => state.progress[i];
 
   const values = () => ({ ...state.values });
 
@@ -76,11 +115,23 @@ const Engine = (() => {
   };
 
   // מאפיין שאינו ב-solution לא נבדק, ולכן פקד נוסף לניסויים לא חוסם מעבר.
+  // ניסיונות נספרים רק עד הפתרון: בדיקה חוזרת בשלב פתור לא מורידה ניקוד.
   const check = () => {
     const ok = Object.entries(current().solution)
       .every(([prop, accepted]) => accepted.includes(state.values[prop]));
-    if (ok) state.solved[state.index] = true;
+
+    if (!entry().solved) {
+      entry().attempts += 1;
+      entry().solved = ok;
+    }
+    persist();
     return ok;
+  };
+
+  const useHint = () => {
+    entry().hintUsed = true;
+    persist();
+    return current().hint;
   };
 
   const goTo = (i) => {
@@ -93,13 +144,45 @@ const Engine = (() => {
   const next = () => goTo(state.index + 1);
   const prev = () => goTo(state.index - 1);
 
-  const isSolved = (i = state.index) => state.solved[i];
-  const isComplete = () => state.solved.every(Boolean);
-  const solvedCount = () => state.solved.filter(Boolean).length;
+  // ההתקדמות ליניארית: שלב נפתח רק אחרי שקודמו נפתר.
+  const isUnlocked = (i) => i === 0 || state.progress[i - 1].solved;
+
+  const isSolved = (i = state.index) => entry(i).solved;
+  const attempts = (i = state.index) => entry(i).attempts;
+  const hintUsed = (i = state.index) => entry(i).hintUsed;
+
+  const solvedCount = () => state.progress.filter((p) => p.solved).length;
+  const totalAttempts = () => state.progress.reduce((sum, p) => sum + p.attempts, 0);
+  const isComplete = () => state.progress.every((p) => p.solved);
   const isLast = () => state.index === LEVELS.length - 1;
 
-  const restart = () => {
-    state.solved = LEVELS.map(() => false);
+  const rating = (i = state.index) => {
+    if (!entry(i).solved) return 0;
+    const base = entry(i).attempts <= 1 ? 3 : entry(i).attempts <= 3 ? 2 : 1;
+    return entry(i).hintUsed ? Math.max(1, base - 1) : base;
+  };
+
+  const hasSave = () => readSave() !== null;
+
+  // השלב הראשון שטרם נפתר — קצה ההתקדמות. זה מה ש"המשיכו מהשלב האחרון"
+  // מחזיר אליו, ולא השלב שבמקרה נצפה אחרון: הצצה אחורה בשלב פתור היא
+  // חלק מהמשחק ואסור שתשנה את נקודת החזרה.
+  const frontier = (progress = state.progress) => {
+    const firstUnsolved = progress.findIndex((entry) => !entry.solved);
+    return firstUnsolved === -1 ? LEVELS.length - 1 : firstUnsolved;
+  };
+
+  const resume = () => {
+    const progress = readSave();
+    if (!progress) return false;
+    state.progress = progress;
+    return goTo(frontier());
+  };
+
+  // גם "התחלת המשימה" וגם "שחקו שוב": מוחקים את השמירה ומתחילים מאפס.
+  const startFresh = () => {
+    storage.clear();
+    state.progress = blankProgress();
     goTo(0);
   };
 
@@ -117,13 +200,21 @@ const Engine = (() => {
     setValue,
     reset,
     check,
+    useHint,
     goTo,
     next,
     prev,
+    isUnlocked,
     isSolved,
-    isComplete,
+    attempts,
+    hintUsed,
+    rating,
     solvedCount,
+    totalAttempts,
+    isComplete,
     isLast,
-    restart,
+    hasSave,
+    resume,
+    startFresh,
   };
 })();

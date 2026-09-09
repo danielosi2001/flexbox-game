@@ -5,9 +5,23 @@
 
   const { el } = UI;
 
-  el.btnStart.addEventListener('click', () => {
+  const openLevel = () => {
     UI.showScreen(SCREEN.game);
     UI.renderLevel();
+  };
+
+  // "התחלת המשימה" מוחק שמירה קיימת ומתחיל מאפס — זה מה שהכפתור אומר,
+  // ולמי שרוצה להמשיך יש כפתור משלו.
+  el.btnStart.addEventListener('click', () => {
+    Engine.startFresh();
+    UI.invalidateBoard();
+    openLevel();
+  });
+
+  el.btnContinue.addEventListener('click', () => {
+    Engine.resume();
+    UI.invalidateBoard();
+    openLevel();
   });
 
   // האזנה על המיכל ולא על כל select: הפקדים נבנים מחדש בכל מעבר שלב.
@@ -29,6 +43,7 @@
 
     UI.flashBoard(kind);
     UI.setMessage(message, kind);
+    UI.renderLevelMap();
     UI.syncNav();
   });
 
@@ -36,6 +51,10 @@
     Engine.reset();
     UI.refreshValues();
     UI.setMessage('');
+  });
+
+  el.btnHint.addEventListener('click', () => {
+    UI.showHint(Engine.useHint());
   });
 
   el.btnNext.addEventListener('click', () => {
@@ -53,15 +72,25 @@
     UI.renderLevel();
   });
 
-  el.btnReplay.addEventListener('click', () => {
-    Engine.restart();
-    UI.invalidateBoard();
+  // מפת השלבים נבנית מחדש בכל רינדור, ולכן ההאזנה על המיכל.
+  el.levelMap.addEventListener('click', ({ target }) => {
+    const chip = target.closest(`.${CLASS.levelChip}`);
+    if (!chip) return;
+
+    const index = Number(chip.dataset.level);
+    if (!Engine.isUnlocked(index)) return;
+
+    Engine.goTo(index);
     UI.renderLevel();
-    UI.showScreen(SCREEN.game);
   });
 
-  // הרמז נכנס יחד עם ספירת הניסיונות, בשלב הבא של העבודה.
-  el.btnHint.disabled = true;
+  el.btnReplay.addEventListener('click', () => {
+    Engine.startFresh();
+    UI.invalidateBoard();
+    openLevel();
+  });
 
+  // "המשיכו מהשלב האחרון" מופיע רק כשיש שמירה תקינה.
+  UI.toggleContinue(Engine.hasSave());
   UI.showScreen(SCREEN.start);
 })();

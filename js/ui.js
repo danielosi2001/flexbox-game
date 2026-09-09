@@ -18,8 +18,11 @@ const UI = (() => {
     indicator:   byId(DOM.levelIndicator),
     msg:         byId(DOM.msg),
     hint:        byId(DOM.hint),
+    levelMap:    byId(DOM.levelMap),
     finalScore:  byId(DOM.finalScore),
+    tally:       byId(DOM.scoreBreakdown),
     btnStart:    byId(DOM.btnStart),
+    btnContinue: byId(DOM.btnContinue),
     btnCheck:    byId(DOM.btnCheck),
     btnReset:    byId(DOM.btnReset),
     btnHint:     byId(DOM.btnHint),
@@ -128,6 +131,44 @@ const UI = (() => {
     }, TIMING.flashMs);
   };
 
+  const buildChip = (i) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = CLASS.levelChip;
+    chip.dataset.level = String(i);
+    chip.textContent = String(i + 1);
+
+    if (Engine.isSolved(i)) chip.classList.add(CLASS.chipSolved);
+    if (i === Engine.index()) chip.classList.add(CLASS.chipCurrent);
+    if (!Engine.isUnlocked(i)) {
+      chip.classList.add(CLASS.chipLocked);
+      chip.disabled = true;
+    }
+    return chip;
+  };
+
+  const renderLevelMap = () => {
+    el.levelMap.replaceChildren(
+      ...Array.from({ length: Engine.count() }, (_, i) => buildChip(i))
+    );
+  };
+
+  const showHint = (text) => {
+    el.hint.textContent = text;
+    el.hint.classList.remove(CLASS.hidden);
+    el.btnHint.disabled = true;
+  };
+
+  const hideHint = () => {
+    el.hint.textContent = '';
+    el.hint.classList.add(CLASS.hidden);
+    el.btnHint.disabled = false;
+  };
+
+  const toggleContinue = (show) => {
+    el.btnContinue.classList.toggle(CLASS.hidden, !show);
+  };
+
   // "הבא" נפתח רק אחרי שהשלב נפתר — ההתקדמות מותנית בפתרון נכון.
   const syncNav = () => {
     el.btnPrev.disabled = Engine.index() === 0;
@@ -149,8 +190,13 @@ const UI = (() => {
     renderControls(level);
     applyValues();
     setMessage('');
-    el.hint.classList.add(CLASS.hidden);
     el.board.classList.remove(CLASS.boardSuccess, CLASS.boardError);
+
+    // רמז שכבר נחשף בשלב הזה נשאר גלוי גם אחרי חזרה אליו.
+    if (Engine.hintUsed()) showHint(level.hint);
+    else hideHint();
+
+    renderLevelMap();
     syncNav();
   };
 
@@ -161,8 +207,37 @@ const UI = (() => {
     applyValues();
   };
 
+  const buildTallyRow = (i) => {
+    const row = document.createElement('tr');
+    const cells = [
+      String(i + 1),
+      String(Engine.attempts(i)),
+      Engine.isSolved(i) ? TEXT.stars(Engine.rating(i)) : TEXT.noStars,
+    ];
+    row.append(...cells.map((text) => {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      return cell;
+    }));
+    return row;
+  };
+
+  const buildTotalRow = () => {
+    const row = document.createElement('tr');
+    row.append(...[TEXT.tallyTotal, String(Engine.totalAttempts()), ''].map((text) => {
+      const cell = document.createElement('td');
+      cell.textContent = text;
+      return cell;
+    }));
+    return row;
+  };
+
   const renderWin = () => {
     el.finalScore.textContent = TEXT.finalScore(Engine.solvedCount(), Engine.count());
+    el.tally.replaceChildren(
+      ...Array.from({ length: Engine.count() }, (_, i) => buildTallyRow(i)),
+      buildTotalRow()
+    );
   };
 
   return {
@@ -174,6 +249,9 @@ const UI = (() => {
     setMessage,
     flashBoard,
     syncNav,
+    renderLevelMap,
+    showHint,
+    toggleContinue,
     renderWin,
     invalidateBoard: () => { renderedIndex = null; },
   };
