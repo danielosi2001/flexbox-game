@@ -1,4 +1,3 @@
-// js/main.js — חיווט אירועים בלבד. ראו docs/CONTRACT.md
 
 (() => {
   'use strict';
@@ -10,8 +9,6 @@
     UI.renderLevel();
   };
 
-  // "התחלת המשימה" מוחק שמירה קיימת ומתחיל מאפס — זה מה שהכפתור אומר,
-  // ולמי שרוצה להמשיך יש כפתור משלו.
   el.btnStart.addEventListener('click', () => {
     Engine.startFresh();
     UI.invalidateBoard();
@@ -24,7 +21,6 @@
     openLevel();
   });
 
-  // האזנה על המיכל ולא על כל select: הפקדים נבנים מחדש בכל מעבר שלב.
   el.controls.addEventListener('change', ({ target }) => {
     const select = target.closest(`.${CLASS.controlSelect}`);
     if (!select) return;
@@ -90,7 +86,6 @@
     openLevel();
   });
 
-  // "המשיכו מהשלב האחרון" מופיע רק כשיש שמירה תקינה.
   UI.toggleContinue(Engine.hasSave());
   UI.showScreen(SCREEN.start);
 })();

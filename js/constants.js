@@ -1,8 +1,3 @@
-// js/constants.js — כל המחרוזות של הקוד במקום אחד. ראו docs/CONTRACT.md
-//
-// מזהים ושמות מחלקות הם חוזה מול index.html ומול css/style.css, ולכן הם
-// מרוכזים כאן: אפשר להשוות אותם מול docs/CONTRACT.md בקריאת קובץ אחד.
-// טקסט השלבים עצמם יושב ב-js/levels.js, כי הוא נתון ולא ממשק.
 
 const DOM = {
   screens: {
@@ -28,7 +23,6 @@ const DOM = {
   btnNext:        'btn-next',
   btnReplay:      'btn-replay',
 
-  // מזהה ה-select של מאפיין (חוזה §3)
   controlId: (prop) => `ctl-${prop}`,
 };
 
@@ -64,9 +58,6 @@ const TEXT = {
   levelIndicator: (current, total) => `שלב ${current} מתוך ${total}`,
   finalScore:     (solved, total) => `${solved} / ${total} שלבים הושלמו`,
   tallyTotal:     'סה״כ',
-
-  // ניקוד לפי ניסיונות בלבד, בלי מערכת נקודות: שלושה כוכבים בניסיון
-  // הראשון, שניים ב-2-3, אחד מ-4 ומעלה. רמז מוריד כוכב.
   stars:      (count) => '★'.repeat(count) + '☆'.repeat(3 - count),
   noStars:    '—',
 
@@ -76,7 +67,6 @@ const TEXT = {
     err:    'התאים לא מסודרים לפי ההוראה. תקנו את הערכים ונסו שוב.',
   },
 
-  // שגיאות נתונים — לקונסולה בזמן הטעינה, לא לשחקן.
   dataError: {
     where:          (i, id) => `LEVELS[${i}] (שלב ${id}): `,
     unknownControl: (prop) => `הפקד "${prop}" אינו מאפיין נתמך.`,
@@ -86,14 +76,10 @@ const TEXT = {
   },
 };
 
-// מפתח האחסון. הגרסה בשם: אם מבנה השמירה ישתנה, שמירה ישנה פשוט לא
-// תיטען במקום להישבר.
 const STORAGE = {
   key: 'flexbox-game:v1',
 };
 
 const TIMING = {
-  // הסרת מחלקת המצב מהלוח. ה-CSS מתחייב שכל האנימציות מסתיימות עד אז
-  // (bay-success 560ms, bay-error 460ms). חוזה §4.
   flashMs: 600,
 };

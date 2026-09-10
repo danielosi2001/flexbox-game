@@ -1,5 +1,3 @@
-// js/ui.js — כל הגישה ל-DOM. ראו docs/CONTRACT.md
-// אסור לגעת ב-#bay וב-.bay__frame: הם נושאים את ההקטנה הרספונסיבית (§5).
 
 const UI = (() => {
   'use strict';
@@ -31,9 +29,6 @@ const UI = (() => {
     btnReplay:   byId(DOM.btnReplay),
   };
 
-  // איזה שלב כבר בנוי על הלוח. לכל .pod יש אנימציית כניסה שרצה מעצם
-  // הכניסה ל-DOM, ולכן בונים תאים רק במעבר שלב — בנייה מחדש בכל שינוי
-  // פקד הייתה מהבהבת את הלוח כל הזמן. חוזה §3.
   let renderedIndex = null;
 
   const showScreen = (name) => {
@@ -42,8 +37,6 @@ const UI = (() => {
     });
   };
 
-  // התאים נשארים ריקים: המספר מגיע ממונה ב-CSS, וטקסט בתוך תא היה שובר
-  // את align-items: stretch.
   const buildPod = (size, i) => {
     const pod = document.createElement('div');
     pod.className = size ? `${CLASS.pod} ${CLASS.podSize(size)}` : CLASS.pod;
@@ -98,7 +91,6 @@ const UI = (() => {
     });
   };
 
-  // כותב ללוח רק את המאפיינים שלשלב יש עליהם פקד; את השאר נותן ה-CSS.
   const applyValues = () => {
     const values = Engine.values();
     Engine.PROPS.forEach((prop) => {
@@ -120,12 +112,8 @@ const UI = (() => {
   const flashBoard = (kind) => {
     clearTimeout(flashTimer);
     el.board.classList.remove(CLASS.boardSuccess, CLASS.boardError);
-    // בלי reflow, הוספה מיד אחרי הסרה לא מפעילה את האנימציה מחדש, ובדיקה
-    // שגויה שנייה ברציפות לא הייתה מנערת את הלוח.
     void el.board.offsetWidth;
     el.board.classList.add(kind === FEEDBACK.ok ? CLASS.boardSuccess : CLASS.boardError);
-    // טיימר ולא animationend: מאזין כזה לא בהכרח נורה (למשל תחת
-    // prefers-reduced-motion), והמחלקה הייתה נתקעת על הלוח. חוזה §4.
     flashTimer = setTimeout(() => {
       el.board.classList.remove(CLASS.boardSuccess, CLASS.boardError);
     }, TIMING.flashMs);
@@ -169,7 +157,6 @@ const UI = (() => {
     el.btnContinue.classList.toggle(CLASS.hidden, !show);
   };
 
-  // "הבא" נפתח רק אחרי שהשלב נפתר — ההתקדמות מותנית בפתרון נכון.
   const syncNav = () => {
     el.btnPrev.disabled = Engine.index() === 0;
     el.btnNext.disabled = !Engine.isSolved();
@@ -192,16 +179,12 @@ const UI = (() => {
     setMessage('');
     el.board.classList.remove(CLASS.boardSuccess, CLASS.boardError);
 
-    // רמז שכבר נחשף בשלב הזה נשאר גלוי גם אחרי חזרה אליו.
     if (Engine.hintUsed()) showHint(level.hint);
     else hideHint();
 
     renderLevelMap();
     syncNav();
   };
-
-  // איפוס אינו מעבר שלב, ולכן התאים לא נבנים מחדש ואנימציית הכניסה
-  // לא רצה שוב.
   const refreshValues = () => {
     syncControls();
     applyValues();
